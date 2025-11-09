@@ -1,9 +1,227 @@
-<h1>Lista de Productos</h1>
-<ul>
+<h1>{{title}}</h1>
+
+<div id="cart-header">
+  <span id="cart-icon">🛒 (<span id="cart-count">{{cartProducts.length}}</span>)</span>
+</div>
+
+<form method="GET" action="/products" style="margin-bottom: 20px;">
+  <label>Filtrar por categoría:</label>
+  <input type="text" name="query" placeholder="Ej: ropa, calzado" value="{{query}}">
+  
+  <label>Ordenar por precio:</label>
+  <select name="sort">
+    <option value="">Sin orden</option>
+    <option value="asc" {{#if (eq sort 'asc')}}selected{{/if}}>Ascendente</option>
+    <option value="desc" {{#if (eq sort 'desc')}}selected{{/if}}>Descendente</option>
+  </select>
+
+  <button type="submit">Aplicar</button>
+</form>
+
+<div class="products-container">
   {{#each products}}
-    <li>{{this.title}} - ${{this.price}}</li>
-  {{else}}
-    <li>No hay productos disponibles.</li>
+    <div class="product-card">
+      <h3>{{this.title}}</h3>
+      <p>{{this.description}}</p>
+      <p><strong>Precio:</strong> ${{this.price}}</p>
+      <p><strong>Categoría:</strong> {{this.category}}</p>
+      <a href="/products/{{this._id}}" class="btn">Ver Detalle</a>
+      <button class="add-to-cart" data-id="{{this._id}}">Agregar al carrito</button>
+    </div>
   {{/each}}
-</ul>
-<a href="/realtimeproducts">Ver productos en tiempo real</a>
+</div>
+
+<div class="pagination">
+  {{#if hasPrevPage}}
+    <a href="/products?page={{prevPage}}">Anterior</a>
+  {{/if}}
+  <span>Página {{currentPage}} de {{totalPages}}</span>
+  {{#if hasNextPage}}
+    <a href="/products?page={{nextPage}}">Siguiente</a>
+  {{/if}}
+</div>
+
+<hr>
+<h2>🛒 Carrito de compras</h2>
+
+<div id="cart-container">
+  {{#if cartProducts.length}}
+    <ul id="cart-list">
+      {{#each cartProducts}}
+        <li>
+          <strong>{{this.product.title}}</strong> - ${{this.product.price}} (x{{this.quantity}})
+        </li>
+      {{/each}}
+    </ul>
+
+    <h3 id="cart-total-text">💰 Total: $<span id="cart-total">
+      {{#each cartProducts}}{{#if @first}}{{../totalCart}}{{/if}}{{/each}}
+    </span></h3>
+
+    <button id="clear-cart" class="clear-btn">🧹 Vaciar carrito</button>
+  {{else}}
+    <p id="empty-cart">Tu carrito está vacío</p>
+    <h3 id="cart-total-text" style="display:none;">💰 Total: $<span id="cart-total">0</span></h3>
+  {{/if}}
+</div>
+
+<script>
+  const cartId = '{{cartId}}';
+  const cartContainer = document.getElementById('cart-container');
+  const cartCountEl = document.getElementById('cart-count');
+  const totalEl = document.getElementById('cart-total');
+  const totalText = document.getElementById('cart-total-text');
+
+  document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const productId = btn.dataset.id;
+      try {
+        const res = await fetch(`/api/carts/${cartId}/product/${productId}`, { method: 'POST' });
+        if (!res.ok) throw new Error('Error al agregar producto');
+        const updatedCart = await res.json();
+        updateCartDisplay(updatedCart.products);
+      } catch (err) {
+        console.error('Error al agregar producto:', err);
+        alert('❌ No se pudo agregar el producto');
+      }
+    });
+  });
+
+  document.addEventListener('click', async e => {
+    if (e.target.id === 'clear-cart') {
+      if (!confirm('¿Seguro que deseas vaciar el carrito?')) return;
+      try {
+        const res = await fetch(`/api/carts/${cartId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Error al vaciar carrito');
+        updateCartDisplay([]);
+      } catch (err) {
+        console.error('Error al vaciar carrito:', err);
+        alert('❌ No se pudo vaciar el carrito');
+      }
+    }
+  });
+
+  function updateCartDisplay(products) {
+    const totalQuantity = products.reduce((sum, p) => sum + p.quantity, 0);
+    cartCountEl.textContent = totalQuantity;
+
+    if (!products.length) {
+      cartContainer.innerHTML = `
+        <p id="empty-cart">Tu carrito está vacío</p>
+        <h3 id="cart-total-text" style="display:block;">💰 Total: $<span id="cart-total">0</span></h3>
+      `;
+      return;
+    }
+
+    const list = document.createElement('ul');
+    list.id = 'cart-list';
+    let total = 0;
+
+    products.forEach(p => {
+      const item = document.createElement('li');
+      item.innerHTML = `<strong>${p.product.title}</strong> - $${p.product.price} (x${p.quantity})`;
+      list.appendChild(item);
+      total += p.product.price * p.quantity;
+    });
+
+    cartContainer.innerHTML = '';
+    cartContainer.appendChild(list);
+
+    const totalHTML = document.createElement('h3');
+    totalHTML.id = 'cart-total-text';
+    totalHTML.innerHTML = `💰 Total: $<span id="cart-total">${total.toFixed(2)}</span>`;
+    cartContainer.appendChild(totalHTML);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.id = 'clear-cart';
+    clearBtn.className = 'clear-btn';
+    clearBtn.textContent = '🧹 Vaciar carrito';
+    cartContainer.appendChild(clearBtn);
+  }
+</script>
+
+<style>
+  #cart-header {
+    position: fixed;
+    top: 10px;
+    right: 15px;
+    background-color: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    z-index: 100;
+  }
+  .products-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+  }
+  .product-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .btn {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+  }
+  .add-to-cart {
+    margin-top: 5px;
+    background-color: #28a745;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .add-to-cart:hover {
+    background-color: #218838;
+  }
+  .pagination {
+    text-align: center;
+    margin-top: 15px;
+  }
+  #cart-container {
+    margin-top: 20px;
+    border-top: 2px solid #ccc;
+    padding-top: 10px;
+  }
+  #cart-list li {
+    margin-bottom: 5px;
+  }
+  .clear-btn {
+    margin-top: 10px;
+    background-color: #dc3545;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .clear-btn:hover {
+    background-color: #c82333;
+  }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

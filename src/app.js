@@ -1,78 +1,52 @@
 import express from 'express';
+import { engine } from 'express-handlebars';
 import path from 'path';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import { engine as expressHandlebars } from 'express-handlebars';
-
+import { fileURLToPath } from 'url';
 import viewsRouter from './routes/views.router.js';
-import productsRoutes from './routes/api/products.routes.js';
-import cartRoutes from './routes/api/carts.routes.js';
+import cartsRouter from './routes/api/carts.routes.js';
+import productsRouter from './routes/api/products.routes.js';
+import connectDB from './db/mongo.js';
+import { eqHelper } from './utils.js';
 
-import { connectMongo } from './db/mongo.js';
-import Product from './models/product.model.js';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer);
+const PORT = 8080;
+
+connectDB();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.engine('handlebars', expressHandlebars({
-  defaultLayout: 'main',
-  layoutsDir: path.resolve('./src/views/layouts')
-}));
+app.engine(
+  'handlebars',
+  engine({
+    helpers: { eq: eqHelper }
+  })
+);
 app.set('view engine', 'handlebars');
-app.set('views', path.resolve('./src/views'));  // <-- Aquí está la ruta correcta
+app.set('views', path.join(__dirname, 'views'));
 
 app.use('/', viewsRouter);
-app.use('/api/products', productsRoutes);
-app.use('/api/carts', cartRoutes);
+app.use('/api/products', productsRouter);
+app.use('/api/carts', cartsRouter);
 
-let products = [];
-
-const loadProducts = async () => {
-  products = await Product.find().lean();
-};
-
-connectMongo().then(() => {
-  loadProducts();
+app.listen(PORT, () => {
+  console.log(`✅ Servidor escuchando en http://localhost:${PORT}`);
 });
 
-io.on('connection', (socket) => {
-  console.log('Nuevo cliente conectado');
 
-  socket.emit('updateProducts', products);
 
-  socket.on('addProduct', async (productData) => {
-    try {
-      const product = new Product(productData);
-      await product.save();
-      products = await Product.find().lean();
-      io.emit('updateProducts', products);
-    } catch (error) {
-      console.error('Error al agregar producto:', error);
-    }
-  });
 
-  socket.on('deleteProduct', async (productId) => {
-    try {
-      await Product.findByIdAndDelete(productId);
-      products = await Product.find().lean();
-      io.emit('updateProducts', products);
-    } catch (error) {
-      console.error('Error al eliminar producto:', error);
-    }
-  });
 
-  socket.on('disconnect', () => {
-    console.log('Cliente desconectado');
-  });
-});
 
-httpServer.listen(8080, () => {
-  console.log('Servidor corriendo en el puerto 8080');
-});
+
+
+
+
+
 
 
 

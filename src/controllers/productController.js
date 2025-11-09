@@ -1,55 +1,69 @@
-import Product from '../models/product.model.js';
+import ProductManager from '../dao/ProductManager.js';
 
+const pm = new ProductManager();
 
 export const getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
-    res.json(products);
+    const { limit = 10, page = 1, sort, query } = req.query;
+    const result = await pm.getProducts({ limit, page, sort, query });
+
+    const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}`;
+    res.json({
+      status: 'success',
+      payload: result.docs,
+      totalPages: result.totalPages,
+      prevPage: result.prevPage || null,
+      nextPage: result.nextPage || null,
+      page: result.page,
+      hasPrevPage: result.hasPrevPage,
+      hasNextPage: result.hasNextPage,
+      prevLink: result.hasPrevPage ? `${baseUrl}?page=${result.prevPage}&limit=${limit}${sort ? `&sort=${sort}` : ''}${query ? `&query=${query}` : ''}` : null,
+      nextLink: result.hasNextPage ? `${baseUrl}?page=${result.nextPage}&limit=${limit}${sort ? `&sort=${sort}` : ''}${query ? `&query=${query}` : ''}` : null
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener productos' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
-
 
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.pid);
-    if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
-    res.json(product);
+    const prod = await pm.getById(req.params.pid);
+    if (!prod) return res.status(404).json({ status: 'error', message: 'Producto no encontrado' });
+    res.json(prod);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener producto' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
-
 
 export const createProduct = async (req, res) => {
   try {
-    const product = new Product(req.body);
-    await product.save();
-    res.status(201).json(product);
+    const created = await pm.create(req.body);
+    res.status(201).json(created);
   } catch (error) {
-    res.status(400).json({ error: 'Error al crear producto', details: error.message });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
-
 
 export const updateProduct = async (req, res) => {
   try {
-    const updated = await Product.findByIdAndUpdate(req.params.pid, req.body, { new: true });
-    if (!updated) return res.status(404).json({ error: 'Producto no encontrado' });
+    const updated = await pm.update(req.params.pid, req.body);
     res.json(updated);
   } catch (error) {
-    res.status(400).json({ error: 'Error al actualizar producto' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
-
 
 export const deleteProduct = async (req, res) => {
   try {
-    const deleted = await Product.findByIdAndDelete(req.params.pid);
-    if (!deleted) return res.status(404).json({ error: 'Producto no encontrado' });
-    res.json({ message: 'Producto eliminado correctamente' });
+    await pm.delete(req.params.pid);
+    res.json({ status: 'success', message: 'Producto eliminado' });
   } catch (error) {
-    res.status(400).json({ error: 'Error al eliminar producto' });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
+
+
+
+
+
+

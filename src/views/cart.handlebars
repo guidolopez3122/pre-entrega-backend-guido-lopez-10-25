@@ -1,0 +1,108 @@
+<h1>🛒 Carrito {{cart._id}}</h1>
+
+{{#if cart.products.length}}
+  <ul class="cart-list">
+    {{#each cart.products}}
+      <li>
+        <div class="cart-item">
+          <div>
+            <strong>{{this.product.title}}</strong><br>
+            Precio: ${{this.product.price}}<br>
+            Cantidad: {{this.quantity}}
+          </div>
+          <button class="remove-btn" data-id="{{this.product._id}}">Eliminar</button>
+        </div>
+      </li>
+    {{/each}}
+  </ul>
+  <button id="clearCart">Vaciar carrito</button>
+{{else}}
+  <p>El carrito está vacío.</p>
+{{/if}}
+
+<a href="/" class="back-link">⬅ Volver al catálogo</a>
+
+<script>
+  const cartId = '{{cart._id}}';
+
+  // Eliminar producto del carrito
+  document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pid = btn.dataset.id;
+      try {
+        const res = await fetch(`/api/carts/${cartId}/products/${pid}`, { method: 'DELETE' });
+        if (res.ok) {
+          location.reload();
+        } else {
+          alert('Error al eliminar el producto');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  });
+
+  // Vaciar carrito
+  document.getElementById('clearCart')?.addEventListener('click', async () => {
+    try {
+      const res = await fetch(`/api/carts/${cartId}`, { method: 'DELETE' });
+      if (res.ok) {
+        location.reload();
+      } else {
+        alert('Error al vaciar el carrito');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+</script>
+
+<style>
+  .cart-list {
+    list-style: none;
+    padding: 0;
+  }
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .remove-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .remove-btn:hover {
+    background-color: #b02a37;
+  }
+  #clearCart {
+    background-color: #ff7b00;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  #clearCart:hover {
+    background-color: #d66c00;
+  }
+  .back-link {
+    display: inline-block;
+    margin-top: 20px;
+    text-decoration: none;
+    color: #007bff;
+  }
+  .back-link:hover {
+    text-decoration: underline;
+  }
+</style>
+
+
