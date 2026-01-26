@@ -5,8 +5,11 @@ import { fileURLToPath } from 'url';
 import viewsRouter from './routes/views.router.js';
 import cartsRouter from './routes/api/carts.routes.js';
 import productsRouter from './routes/api/products.routes.js';
+import sessionsRouter from './routes/api/sessions.js';
 import connectDB from './db/mongo.js';
 import { eqHelper } from './utils.js';
+import passport from 'passport';
+import './middleware/passport.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +23,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(passport.initialize());
+
 app.engine(
   'handlebars',
   engine({
@@ -32,6 +37,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use('/', viewsRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
+app.use('/api/sessions', sessionsRouter);
 
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en http://localhost:${PORT}`);

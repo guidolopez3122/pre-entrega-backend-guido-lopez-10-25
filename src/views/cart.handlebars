@@ -25,7 +25,6 @@
 <script>
   const cartId = '{{cart._id}}';
 
-  // Eliminar producto del carrito
   document.querySelectorAll('.remove-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const pid = btn.dataset.id;
@@ -42,7 +41,6 @@
     });
   });
 
-  // Vaciar carrito
   document.getElementById('clearCart')?.addEventListener('click', async () => {
     try {
       const res = await fetch(`/api/carts/${cartId}`, { method: 'DELETE' });
