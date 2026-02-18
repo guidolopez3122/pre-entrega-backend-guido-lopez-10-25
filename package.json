@@ -1,24 +1,33 @@
 {
   "name": "pre-entrega-guido-lopez-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
     "start:watch": "nodemon src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "lint": "eslint src/"
   },
   "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
     "express": "^4.21.2",
     "express-handlebars": "^8.0.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
+    "jest": "^30.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.16.3",
     "mongoose-paginate-v2": "^1.9.1",
+    "nodemailer": "^8.0.1",
     "nodemon": "^2.0.22",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "winston": "^3.19.0"
   }
 }

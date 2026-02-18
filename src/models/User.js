@@ -8,8 +8,11 @@ const userSchema = new mongoose.Schema({
   age: Number,
   password: String,
   cart: { type: mongoose.Schema.Types.ObjectId, ref: 'Carts' },
-  role: { type: String, default: 'user' }
+  role: { type: String, default: 'user' },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 });
+
 
 userSchema.pre('save', function(next) {
   if (this.isModified('password')) {

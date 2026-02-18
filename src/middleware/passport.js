@@ -3,6 +3,9 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JWTStrategy, ExtractJwt } from 'passport-jwt';
 import User from '../models/User.js';
 import bcrypt from 'bcrypt';
+import config from '../config/index.js';
+
+const JWT_SECRET = config.JWT_SECRET;
 
 passport.use('login', new LocalStrategy({
   usernameField: 'email',
@@ -21,7 +24,7 @@ passport.use('login', new LocalStrategy({
 
 passport.use('jwt', new JWTStrategy({
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET || 'secret'
+  secretOrKey: JWT_SECRET
 }, async (payload, done) => {
   try {
     const user = await User.findById(payload.id);
@@ -34,7 +37,7 @@ passport.use('jwt', new JWTStrategy({
 
 passport.use('current', new JWTStrategy({
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET || 'secret'
+  secretOrKey: JWT_SECRET
 }, async (payload, done) => {
   try {
     const user = await User.findById(payload.id);
@@ -43,3 +46,5 @@ passport.use('current', new JWTStrategy({
     return done(error);
   }
 }));
+
+export default passport;

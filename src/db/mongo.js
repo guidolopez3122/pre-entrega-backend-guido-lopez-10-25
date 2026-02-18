@@ -1,26 +1,25 @@
 import mongoose from 'mongoose';
+import winston from 'winston';
+import config from '../config/index.js';
 
-const MONGO_URL = 'mongodb+srv://guido_lopez_db_user:epnShknUzHAW2m5v@cluster0.ifw7swu.mongodb.net/ecommerce?retryWrites=true&w=majority';
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' })
+  ]
+});
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URL);
-    console.log('🟢 MongoDB conectado correctamente');
+    await mongoose.connect(config.MONGODB_URI);
+    logger.info('✅ MongoDB conectado correctamente');
   } catch (error) {
-    console.error('❌ Error al conectar a MongoDB:', error);
+    logger.error('❌ Error al conectar a MongoDB:', error);
     process.exit(1);
   }
 };
 
 export default connectDB;
-
-
-
-
-
-
-
-
-
-
-

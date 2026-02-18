@@ -1,80 +1,95 @@
-import CartManager from '../dao/CartManager.js';
+import cartService from '../services/cart.service.js';
 
-const cm = new CartManager();
 
 export const createCart = async (req, res) => {
   try {
-    const c = await cm.createCart();
-    res.status(201).json(c);
+    const userId = req.user ? req.user.id : null;
+    const cart = await cartService.createCart(userId);
+    res.status(201).json(cart);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };
+
 
 export const getCart = async (req, res) => {
   try {
-    const cart = await cm.getById(req.params.cid);
-    if (!cart) return res.status(404).json({ message: 'Carrito no encontrado' });
+    const cart = await cartService.getCartById(req.params.cid);
     res.json(cart);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(404).json({ status: 'error', message: error.message });
   }
 };
+
 
 export const addProductToCart = async (req, res) => {
   try {
-    const updated = await cm.addProduct(req.params.cid, req.params.pid);
-    if (!updated) return res.status(404).json({ message: 'Carrito o producto no encontrado' });
-    res.json(updated);
+    const { cid, pid } = req.params;
+    const quantity = req.body.quantity || 1;
+    const cart = await cartService.addProductToCart(cid, pid, quantity);
+    res.json(cart);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ status: 'error', message: error.message });
   }
 };
+
 
 export const deleteProductFromCart = async (req, res) => {
   try {
-    const updated = await cm.removeProduct(req.params.cid, req.params.pid);
-    if (!updated) return res.status(404).json({ message: 'Carrito o producto no encontrado' });
-    res.json(updated);
+    const cart = await cartService.removeProductFromCart(req.params.cid, req.params.pid);
+    res.json(cart);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(404).json({ status: 'error', message: error.message });
   }
 };
+
 
 export const updateCartProducts = async (req, res) => {
   try {
-    const updated = await cm.updateProducts(req.params.cid, req.body.products);
-    if (!updated) return res.status(404).json({ message: 'Carrito no encontrado' });
+    const cart = await cartService.getCartById(req.params.cid);
+    // Actualizar todos los productos del carrito
+    for (const item of req.body.products || []) {
+      await cartService.updateProductQuantity(req.params.cid, item.product, item.quantity);
+    }
+    const updated = await cartService.getCartById(req.params.cid);
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ status: 'error', message: error.message });
   }
 };
+
 
 export const updateProductQuantity = async (req, res) => {
   try {
-    const { quantity } = req.body;
-    const updated = await cm.updateProductQuantity(req.params.cid, req.params.pid, quantity);
-    if (!updated) return res.status(404).json({ message: 'Carrito o producto no encontrado' });
-    res.json(updated);
+    const cart = await cartService.updateProductQuantity(
+      req.params.cid, 
+      req.params.pid, 
+      req.body.quantity
+    );
+    res.json(cart);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ status: 'error', message: error.message });
   }
 };
+
 
 export const clearCart = async (req, res) => {
   try {
-    const cleared = await cm.clearCart(req.params.cid);
-    if (!cleared) return res.status(404).json({ message: 'Carrito no encontrado' });
-    res.json(cleared);
+    const cart = await cartService.clearCart(req.params.cid);
+    res.json(cart);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(404).json({ status: 'error', message: error.message });
   }
 };
 
 
-
-
-
-
-
+export const purchaseCartController = async (req, res) => {
+  try {
+    const { cid } = req.params;
+    const userId = req.user.id;
+    const result = await cartService.purchaseCart(cid, userId);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ status: 'error', message: error.message });
+  }
+};
