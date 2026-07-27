@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+*.md
+.vscode
+.idea
+coverage
+*.log
+.DS_Store
+Thumbs.db
+src/__tests__
+src/__mocks__
+jest.config.cjs
+jest.setup.cjs
+winston-mock.cjs

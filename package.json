@@ -5,10 +5,15 @@
   "scripts": {
     "start": "node src/app.js",
     "start:watch": "nodemon src/app.js",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --forceExit --detectOpenHandles",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --watch --forceExit",
     "lint": "eslint src/"
   },
   "type": "module",
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "supertest": "^7.2.2"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
@@ -18,7 +23,6 @@
     "express-handlebars": "^8.0.1",
     "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
-    "jest": "^30.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.16.3",
     "mongoose-paginate-v2": "^1.9.1",
@@ -31,3 +35,4 @@
     "winston": "^3.19.0"
   }
 }
+

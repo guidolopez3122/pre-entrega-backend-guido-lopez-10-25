@@ -6,6 +6,9 @@ import viewsRouter from './routes/views.router.js';
 import cartsRouter from './routes/api/carts.routes.js';
 import productsRouter from './routes/api/products.routes.js';
 import sessionsRouter from './routes/api/sessions.js';
+import adoptionRouter from './routes/api/adoption.router.js';
+import petsRouter from './routes/api/pets.routes.js';
+import usersRouter from './routes/api/users.router.js';
 import connectDB from './db/mongo.js';
 import { eqHelper } from './utils.js';
 import passport from 'passport';
@@ -22,10 +25,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-const PORT = config.PORT;
-
 
 const logger = winston.createLogger({
   level: config.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -45,9 +44,6 @@ const logger = winston.createLogger({
   ]
 });
 
-
-connectDB();
-
 app.use(helmet());
 app.use(cors());
 app.use(compression());
@@ -65,16 +61,32 @@ app.use('/', viewsRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/adoptions', adoptionRouter);
+app.use('/api/pets', petsRouter);
+app.use('/api/users', usersRouter);
 
 app.use((err, req, res, next) => {
   logger.error(err.message);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-io.on('connection', (socket) => {
-  logger.info('Usuario conectado via Socket.io');
-});
+export { app, logger };
 
-server.listen(PORT, () => {
-  logger.info(`✅ Servidor escuchando en http://localhost:${PORT}`);
-});
+export async function startServer() {
+  await connectDB();
+  const server = http.createServer(app);
+  const io = new Server(server);
+  io.on('connection', (socket) => {
+    logger.info('Usuario conectado via Socket.io');
+  });
+  const PORT = config.PORT;
+  server.listen(PORT, () => {
+    logger.info(`✅ Servidor escuchando en http://localhost:${PORT}`);
+  });
+  return { server, io };
+}
+
+const __main = fileURLToPath(import.meta.url);
+if (process.argv[1] === __main || process.argv[1]?.endsWith('src/app.js')) {
+  startServer();
+}
