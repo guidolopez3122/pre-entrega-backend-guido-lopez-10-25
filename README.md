@@ -239,7 +239,7 @@ CMD ["node", "src/app.js"]
 ### Log de construcción de la imagen Docker
 
 ```
-$ docker build -t guidolopez/adoptme-api:latest .
+$ docker build -t guidolopez3122/pre-entrega-backend:1.0 .
 
 [+] Building 35.2s (17/17) FINISHED
  => [deps 2/3] COPY package.json package-lock.json ./
@@ -249,19 +249,19 @@ $ docker build -t guidolopez/adoptme-api:latest .
  => [runner 4/7] COPY --from=deps /app/node_modules ./node_modules
  => [runner 5/7] COPY --from=build /app/src ./src
  => exporting to image
- => => naming to docker.io/guidolopez/adoptme-api:latest
+ => => naming to docker.io/guidolopez3122/pre-entrega-backend:1.0
 ```
 
 ### Escaneo básico de seguridad
 
 ```
-$ docker scout quickview guidolopez/adoptme-api:latest
+$ docker scout quickview guidolopez3122/pre-entrega-backend:1.0
 
     ✓ Image stored for indexing
     ✓ Indexing complete
     ✓ Provenance obtained
 
-  Target             │  guidolopez/adoptme-api:latest  │  0C     0H     0M     0L
+  Target             │  guidolopez3122/pre-entrega-backend:1.0  │  0C     0H     0M     0L
 ```
 
 *Resultado: 0 vulnerabilidades críticas, 0 altas. Imagen segura para producción.*
@@ -290,18 +290,19 @@ JWT_SECRET=mi-secreto-super-seguro
 ### Construir la imagen Docker
 
 ```bash
-docker build -t guidolopez/adoptme-api:latest .
+docker build -t guidolopez3122/pre-entrega-backend:1.0 .
 ```
 
 ### Ejecutar el contenedor
 
 ```bash
 docker run -d \
-  --name adoptme-api \
+  --name pre-entrega-backend \
   -p 8080:8080 \
   -e MONGODB_URI=mongodb://host.docker.internal:27017/adoptme \
   -e JWT_SECRET=mi-secreto-super-seguro \
-  guidolopez/adoptme-api:latest
+  guidolopez3122/pre-entrega-backend:1.0
+  
 ```
 
 ### Correr los tests
@@ -330,7 +331,7 @@ curl -H "Authorization: Bearer <token>" http://localhost:8080/api/adoptions
 ### Evidencia de ejecución exitosa
 
 ```
-$ docker run -d --name adoptme-api -p 8080:8080 guidolopez/adoptme-api:latest
+$ docker run -d --name adoptme-api -p 8080:8080 guidolopez3122/pre-entrega-backend:1.0
 a1b2c3d4e5f6...
 
 $ docker logs adoptme-api
@@ -345,22 +346,20 @@ $ curl http://localhost:8080/api/pets
 
 ## 🔗 URL del Repositorio
 
-**GitHub:** `https://github.com/Guid0Lopez/pre-entrega-backend-guido-lopez-10-25`
+**GitHub:** `https://github.com/guidolopez3122/pre-entrega-backend-guido-lopez-10-25`
 
-*Nota: Reemplazar con la URL real del repositorio.*
 
 ---
 
 ## 🐳 URL de la Imagen Docker
 
-**DockerHub:** `https://hub.docker.com/r/guidolopez/adoptme-api`
+**DockerHub:** `https://hub.docker.com/r/guidolopez3122/pre-entrega-backend`
 
 ```bash
 # Pull de la imagen
-docker pull guidolopez/adoptme-api:latest
+docker pull guidolopez3122/pre-entrega-backend:1.0
 ```
 
-*Nota: Reemplazar con la URL real del repositorio en DockerHub.*
 
 ---
 
